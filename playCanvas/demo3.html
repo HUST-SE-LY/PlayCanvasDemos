@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>demo</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="" />
+    <script src="https://code.playcanvas.com/playcanvas-stable.min.js"></script>
+  </head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <body>
+    <canvas id="app"></canvas>
+    <script>
+      // 创建一个PlayCanvas应用
+      const canvas = document.getElementById("app");
+      const app = new pc.Application(canvas, {
+        mouse: new pc.Mouse(document.body),
+        touch: new pc.TouchDevice(document.body),
+        elementInput: new pc.ElementInput(canvas),
+      });
+      pc.WasmModule.setConfig("Ammo", {
+        glueUrl: "./static/ammo.wasm.js",
+        wasmUrl: "./static/ammo.wasm.wasm",
+        fallbackUrl: "./static/ammo.js",
+      });
+
+      pc.WasmModule.getInstance("Ammo", demo);
+
+      // 在全屏模式下填满可用空间
+      app.setCanvasFillMode(pc.FILLMODE_FILL_WINDOW);
+      app.setCanvasResolution(pc.RESOLUTION_AUTO);
+
+      // 确保在窗口尺寸变化同时画布也同时改变其大小
+      window.addEventListener("resize", () => app.resizeCanvas());
+
+      function demo() {
+        app.start();
+        app.systems.rigidbody.gravity.set(0, -9.81, 0);
+
+        const box = new pc.Entity();
+        box.addComponent("render", {
+          type: "capsule",
+        });
+        box.addComponent("rigidbody", {
+          type: pc.BODYTYPE_DYNAMIC,
+          mass: 50,
+          rollingFriction:1
+        });
+        box.addComponent("collision", {
+          type: "capsule",
+          radius: 0.5,
+          height: 2,
+        });
+        box.rotate(0, 0, 45);
+
+        box.setPosition(0, 5, 0);
+        app.root.addChild(box);
+
+        const plane = new pc.Entity("plane");
+
+        plane.addComponent("model", {
+          type: "box",
+        });
+        plane.rotate(20, 0, 0);
+        plane.addComponent("rigidbody", {
+          type: "static",
+          restitution: 0.5,
+          rollingFriction:1,
+        });
+        plane.addComponent("collision", {
+          type: "box",
+          halfExtents: new pc.Vec3(5, 0.05, 5),
+        });
+        app.root.addChild(plane);
+        plane.setLocalScale(10, 0.1, 10);
+        plane.translate(0, 0, 0);
+
+        const floor = new pc.Entity();
+        floor.setLocalScale(40, 0.1, 40);
+        floor.setPosition(0, -5, -10);
+        floor.addComponent("model", {
+          type: "box",
+        });
+        floor.addComponent("rigidbody", {
+          type: "static",
+          restitution: 0.5,
+          rollingFriction:1,
+        });
+        floor.addComponent("collision", {
+          type: 'box',
+          halfExtents: new pc.Vec3(20, 0.05, 20),
+        });
+        app.root.addChild(floor);
+
+        // 创建一个摄像头
+        const camera = new pc.Entity("camera");
+        camera.addComponent("camera", {
+          clearColor: new pc.Color(0.1, 0.1, 0.1),
+        });
+        app.root.addChild(camera);
+        camera.setPosition(0, 5, 40);
+
+
+        // 创建一个指向灯
+        const light = new pc.Entity("light");
+        light.addComponent("light");
+        app.root.addChild(light);
+        light.setEulerAngles(45, 0, 0);
+      }
+    </script>
+  </body>
+</html>
